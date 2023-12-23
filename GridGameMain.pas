@@ -95,6 +95,7 @@ type
     procedure DrawGridToScreen_BA_Interactive(AGrid: PGrid; AParent: TWinControl);
     procedure RegisterMisclick;
     procedure Reshuffle;
+    function GetScore: integer;
   end;
 
 var
@@ -105,7 +106,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Winapi.MMSystem;
+  Winapi.MMSystem, DateUtils, Math;
 
 procedure InitDeck(var ADeck: TDeck);
 var
@@ -379,6 +380,27 @@ begin
   if bitbtn.Caption = 'Jkr' then bitbtn.Caption := S_Joker;  // do not translate
 end;
 
+function TForm1.GetScore: integer;
+var
+  sec: Int64;
+  clc: double;
+begin
+  if (stat.StepsRemaining = 0) and (CompareValue(stat.FinishTime,0) <> 0) then
+    sec := SecondsBetween(stat.FinishTime, stat.StartTime)
+  else
+    sec := SecondsBetween(Now, stat.StartTime);
+
+  clc := stat.StepsStart-stat.StepsRemaining; // Successful clicks
+  clc := clc - stat.MisClicksCur * 0.5; // Penality  0,5clicks per misclick
+
+  if clc < 0 then clc := 0;
+
+  if clc = 0 then exit(0);
+
+  result := (60*100) - round(sec/clc*100);
+  if result < 0 then result := 0;
+end;
+
 procedure TForm1.DrawGameStat;
 var
   Timer: string;
@@ -386,14 +408,14 @@ var
   sNewCaption: string;
 resourcestring
   S_TITLE = 'Grid Game';
-  S_STATS = '%d of %d steps remaining - Time: %s (%d of %s misclicks)';
+  S_STATS = '%d of %d steps remaining - Time: %s (%d of %s misclicks) - SCORE %d';
   S_Infinite = 'infinite';
 begin
   sNewCaption := S_TITLE;
 
   if not stat.Initialized then exit;
 
-  if stat.StepsRemaining = 0 then
+  if (stat.StepsRemaining = 0) and (CompareValue(stat.FinishTime,0) <> 0) then
     Timer := TimeToStr(stat.FinishTime - stat.StartTime)
   else
     Timer := TimeToStr(Now - stat.StartTime);
@@ -403,7 +425,7 @@ begin
   else
     sMisClicksMax := IntToStr(stat.MisClicksMax);
 
-  sNewCaption := sNewCaption + Format(' - '+S_STATS, [stat.StepsRemaining, stat.StepsStart, Timer, stat.MisClicksCur, sMisClicksMax]);
+  sNewCaption := sNewCaption + Format(' - '+S_STATS, [stat.StepsRemaining, stat.StepsStart, Timer, stat.MisClicksCur, sMisClicksMax, GetScore]);
 
   if Caption <> sNewCaption then Caption := sNewCaption;
 end;
