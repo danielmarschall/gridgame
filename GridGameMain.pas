@@ -2,7 +2,9 @@
 
 // TODO: Top scores (also count misclicks and time)
 // TODO: Remember grid size and settings for next session
-// TODO: Music and Sound Effects
+// TODO: Settings
+//       - Disable Sounds
+//       - Disable Music
 // TODO: Game Modes
 //       - Nightmare = 1 misclick leads to reshuffle
 //       - Hard = 10% misclicks leads reshuffle
@@ -15,7 +17,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Samples.Spin,
-  Vcl.ComCtrls, Vcl.Buttons, Vcl.ExtCtrls;
+  Vcl.ComCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.MPlayer;
 
 const
   MinGridSize = 2;
@@ -31,6 +33,7 @@ type
     FinishTime: TDateTime;
     StepsStart: integer;
     StepsRemaining: integer;
+    AllowTraps: boolean;
     MisClicksCur: integer;
     MisClicksMax: integer;
   end;
@@ -69,10 +72,12 @@ type
     Label1: TLabel;
     TabSheet3: TTabSheet;
     Memo2: TMemo;
+    MediaPlayer1: TMediaPlayer;
     procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
+    procedure MediaPlayer1Notify(Sender: TObject);
   private
     Fdeck: TDeck;
     Fgrid: TGrid;
@@ -93,6 +98,9 @@ var
 implementation
 
 {$R *.dfm}
+
+uses
+  Winapi.MMSystem;
 
 procedure InitDeck(var ADeck: TDeck);
 var
@@ -192,22 +200,42 @@ begin
   end;
 
   // 4. Fill unused spots with junk
-  for y := 0 to stat.GridSize-1 do
+  if stat.AllowTraps then
   begin
-    for x := 0 to stat.GridSize-1 do
+    for y := 0 to stat.GridSize-1 do
     begin
-      if AGrid[x, y].isFaceDown then
+      for x := 0 to stat.GridSize-1 do
       begin
-        AGrid[x, y].isJoker := false;
-        AGrid[x, y].isFaceDown := false;
-        AGrid[x, y].suit := TCardSuit(Random(4));
-        AGrid[x, y].number := Random(stat.GridSize-1)+1;
+        if AGrid[x, y].isFaceDown then
+        begin
+          AGrid[x, y].isJoker := false;
+          AGrid[x, y].isFaceDown := false;
+          AGrid[x, y].suit := TCardSuit(Random(4));
+          AGrid[x, y].number := Random(stat.GridSize-1)+1;
+        end;
       end;
     end;
   end;
 
   AStats.StepsStart := pathLength;
   AStats.StepsRemaining := pathLength;
+end;
+
+procedure TForm1.MediaPlayer1Notify(Sender: TObject);
+var
+  MP: TMediaPlayer;
+begin
+  MP := TMediaPlayer(Sender);
+
+  if (MP.Mode = mpStopped) and (MP.Position = MP.Length) then //abfrage ob der Player beim Ende ist
+  begin
+    MP.Open;
+    MP.Play;
+  end;
+  { Beachten Sie, dass die Eigenschaft Notify auf True gesetzt werden muss, }
+  { damit bei der nächsten Modusänderung }
+  { eine Benachrichtigung erfolgt. }
+  MP.Notify := True;
 end;
 
 procedure TForm1.RegisterMisclick;
@@ -220,7 +248,7 @@ begin
   else
   begin
     DrawGameStat;
-    Beep;
+    PlaySound('sounds\misclick.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_ASYNC);
   end;
 end;
 
@@ -228,11 +256,11 @@ function CardName(ACard: TCard): string;
 begin
   if Acard.isFaceDown then
   begin
-    result := '???';
+    result := '???'; // do not translate
   end
   else if Acard.isJoker then
   begin
-    result := 'Jkr';
+    result := 'Jkr'; // do not translate
   end
   else
   begin
@@ -307,6 +335,8 @@ const
   GuiVertSpaceReserved = 350; // incl. Taskbar etc.
 var
   bitbtn: TBitBtn;
+resourcestring
+  S_Joker = 'Joker';
 begin
   bitbtn := ACard.btn;
 
@@ -332,8 +362,8 @@ begin
     bitbtn.Font.Color := clBlack;
 
   bitbtn.Caption := CardName(ACard^);
-  if bitbtn.Caption = '???' then bitbtn.Caption := '';
-  if bitbtn.Caption = 'Jkr' then bitbtn.Caption := 'Joker';
+  if bitbtn.Caption = '???' then bitbtn.Caption := '';       // do not translate
+  if bitbtn.Caption = 'Jkr' then bitbtn.Caption := S_Joker;  // do not translate
 end;
 
 procedure TForm1.DrawGameStat;
@@ -407,6 +437,12 @@ resourcestring
 begin
   Caption := S_PLEASEWAIT;
   Timer2.Enabled := false;
+
+  PlaySound(nil, 0, 0);
+  if MediaPlayer1.Mode = TMPModes.mpPlaying then
+    MediaPlayer1.Stop;
+
+  PlaySound('sounds\shuffle.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_LOOP or SND_ASYNC);
   stat.Initialized := false;
   stat.GridSize := SpinEdit1.Value;
   Randomize;
@@ -418,8 +454,19 @@ begin
   stat.FinishTime := 0;
   stat.MisClicksCur := 0;
   stat.MisClicksMax := -1; // TODO: game mode
+  stat.AllowTraps := false; // TODO: game mode
   stat.Initialized := true;
   DrawGameStat;
+  PlaySound(nil, 0, 0);
+
+  MediaPlayer1.FileName := 'sounds\music.wav';
+  if FileExists(MediaPlayer1.FileName) then
+  begin
+    MediaPlayer1.Open;
+    MediaPlayer1.Play;
+    MediaPlayer1.Notify := True;
+  end;
+
   Timer2.Enabled := true;
 end;
 
@@ -482,7 +529,10 @@ begin
   if (oldy >= 0) and (oldy < stat.GridSize) and (oldx >= 0) and (oldx < stat.GridSize) then
   begin
     if not Fgrid[oldx, oldy].isJoker or Fgrid[oldx, oldy].isFaceDown then
-      RegisterMisclick
+    begin
+      RegisterMisclick;
+      Exit;
+    end
     else
     begin
       Fgrid[oldx, oldy].isFaceDown := true;
@@ -509,11 +559,22 @@ begin
           end;
         end;
 
-        showmessage(S_WIN);
+        PlaySound('sounds\win.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_ASYNC);
+        if MediaPlayer1.Mode = TMPModes.mpPlaying then
+          MediaPlayer1.Stop;
+        // showmessage(S_WIN);
+      end
+      else
+      begin
+        PlaySound('sounds\pick.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_ASYNC);
       end;
     end;
   end
-  else RegisterMisclick;
+  else
+  begin
+    RegisterMisclick;
+    Exit;
+  end;
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);

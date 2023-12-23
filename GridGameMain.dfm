@@ -51,7 +51,7 @@ object Form1: TForm1
     Top = 8
     Width = 608
     Height = 532
-    ActivePage = TabSheet1
+    ActivePage = TabSheet3
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     object TabSheet1: TTabSheet
@@ -174,6 +174,8 @@ object Form1: TForm1
             'defines the direction and the value of the card defines the dist' +
             'ance.'
           ''
+          'The values of the cards are A=1, J=11, Q=12, K=13'
+          ''
           
             'Please be aware that there might be traps. This means paths whic' +
             'h '
@@ -182,11 +184,28 @@ object Form1: TForm1
           'Download latest version here:  '
           'https://www.viathinksoft.com/projects/gridgame'
           ''
-          'Source code:  https://github.com/danielmarschall/gridgame')
+          'Source code:  https://github.com/danielmarschall/gridgame'
+          ''
+          'Developed in 2023 by Daniel Marschall, ViaThinkSoft'
+          'Licensed under the terms of the Apache 2.0 License')
         ReadOnly = True
         TabOrder = 0
       end
     end
+  end
+  object MediaPlayer1: TMediaPlayer
+    Left = 344
+    Top = 554
+    Width = 57
+    Height = 30
+    VisibleButtons = [btPlay, btStop]
+    Anchors = [akLeft, akBottom]
+    DoubleBuffered = True
+    FileName = 'D:\SVN\Grid Game\trunk\music.wav'
+    Visible = False
+    ParentDoubleBuffered = False
+    TabOrder = 3
+    OnNotify = MediaPlayer1Notify
   end
   object Timer1: TTimer
     Interval = 100
