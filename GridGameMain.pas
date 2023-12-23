@@ -370,12 +370,13 @@ procedure TForm1.DrawGameStat;
 var
   Timer: string;
   sMisClicksMax: string;
+  sNewCaption: string;
 resourcestring
   S_TITLE = 'Grid Game';
   S_STATS = '%d of %d steps remaining - Time: %s (%d of %s misclicks)';
   S_Infinite = 'infinite';
 begin
-  Caption := S_TITLE;
+  sNewCaption := S_TITLE;
 
   if not stat.Initialized then exit;
 
@@ -389,7 +390,9 @@ begin
   else
     sMisClicksMax := IntToStr(stat.MisClicksMax);
 
-  Caption := Caption + Format(' - '+S_STATS, [stat.StepsRemaining, stat.StepsStart, Timer, stat.MisClicksCur, sMisClicksMax]);
+  sNewCaption := sNewCaption + Format(' - '+S_STATS, [stat.StepsRemaining, stat.StepsStart, Timer, stat.MisClicksCur, sMisClicksMax]);
+
+  if Caption <> sNewCaption then Caption := sNewCaption;
 end;
 
 procedure TForm1.DrawGridToScreen_BA_Interactive(AGrid: PGrid; AParent: TWinControl);

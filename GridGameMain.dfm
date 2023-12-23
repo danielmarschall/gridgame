@@ -173,6 +173,7 @@ object Form1: TForm1
           
             'defines the direction and the value of the card defines the dist' +
             'ance.'
+          'Start and move with the Joker card.'
           ''
           'The values of the cards are A=1, J=11, Q=12, K=13'
           ''
