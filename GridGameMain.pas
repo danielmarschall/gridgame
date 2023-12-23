@@ -11,6 +11,8 @@
 //       - Medium = Deadlock paths possible, infinite misclicks allowed
 //       - Easy = No deadlock paths, infinite misclicks allowed
 // TODO: Double click should not count as misclick
+// TODO: Make an icon
+// TODO: Center the cards to the screen center
 
 interface
 
@@ -239,14 +241,12 @@ var
 begin
   MP := TMediaPlayer(Sender);
 
-  if (MP.Mode = mpStopped) and (MP.Position = MP.Length) then //abfrage ob der Player beim Ende ist
+  if MP.Position = MP.Length then
   begin
-    MP.Open;
+    if MP.Mode = mpPlaying then MP.Rewind;
     MP.Play;
   end;
-  { Beachten Sie, dass die Eigenschaft Notify auf True gesetzt werden muss, }
-  { damit bei der nächsten Modusänderung }
-  { eine Benachrichtigung erfolgt. }
+
   MP.Notify := True;
 end;
 
@@ -260,7 +260,7 @@ begin
   else
   begin
     DrawGameStat;
-    PlaySound('sounds\misclick.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_ASYNC);
+    PlaySound('sounds\misclick.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_ASYNC);
   end;
 end;
 
@@ -457,10 +457,11 @@ begin
   if MediaPlayer1.Mode = TMPModes.mpPlaying then
   begin
     MediaPlayer1.Stop;
+    MediaPlayer1.EnabledButtons := [btPlay];
   end;
   MediaPlayer1.EnabledButtons := []; // We need to do this crap because AutoEnable does not work together with the Play/Stop commands
 
-  PlaySound('sounds\shuffle.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_LOOP or SND_ASYNC);
+  PlaySound('sounds\shuffle.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_LOOP or SND_ASYNC);
   stat.Initialized := false;
   stat.GridSize := SpinEdit1.Value;
   Randomize;
@@ -484,6 +485,7 @@ begin
     MediaPlayer1.Play;
     MediaPlayer1.EnabledButtons := [btStop]; // We need to do this crap because AutoEnable does not work together with the Play/Stop commands
     MediaPlayer1.Notify := True;
+    MediaPlayer1.AutoRewind := False; // Otherwise Loop does not work
   end;
 
   Timer2.Enabled := true;
@@ -503,8 +505,6 @@ procedure TForm1.CardClick(Sender: TObject);
 var
   x, y: integer;
   oldx, oldy: integer;
-resourcestring
-  S_WIN = 'WIN!';
 begin
   if not stat.Initialized then exit;
   if stat.StepsRemaining = 0 then exit;
@@ -514,7 +514,9 @@ begin
 
   if Fgrid[x, y].isJoker or Fgrid[x, y].isFaceDown then
   begin
-    RegisterMisclick;
+    // It is theoretically a misclick, but we do not count it, because
+    // clicking Joker or face-down card is too invalid to be taken seriously.
+    // RegisterMisclick;
     Exit;
   end;
 
@@ -578,14 +580,16 @@ begin
           end;
         end;
 
-        PlaySound('sounds\win.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_ASYNC);
+        PlaySound('sounds\win.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_ASYNC);
         if MediaPlayer1.Mode = TMPModes.mpPlaying then
+        begin
           MediaPlayer1.Stop;
-        // showmessage(S_WIN);
+          MediaPlayer1.EnabledButtons := [btPlay];
+        end;
       end
       else
       begin
-        PlaySound('sounds\pick.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_ASYNC);
+        PlaySound('sounds\pick.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_ASYNC);
       end;
     end;
   end

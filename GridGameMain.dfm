@@ -210,6 +210,7 @@ object Form1: TForm1
     VisibleButtons = [btPlay, btStop]
     Anchors = [akLeft, akBottom]
     AutoEnable = False
+    AutoRewind = False
     DoubleBuffered = True
     FileName = 'D:\SVN\Grid Game\trunk\music.wav'
     ParentDoubleBuffered = False
