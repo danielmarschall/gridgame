@@ -1,8 +1,14 @@
 ﻿unit GridGameMain;
 
-// TODO: Top scores (also count misclicks)
-// TODO: Remember grid size for next session
+// TODO: Top scores (also count misclicks and time)
+// TODO: Remember grid size and settings for next session
 // TODO: Music and Sound Effects
+// TODO: Game Modes
+//       - Nightmare = 1 misclick leads to reshuffle
+//       - Hard = 10% misclicks leads reshuffle
+//       - Medium = Deadlock paths possible, infinite misclicks allowed
+//       - Easy = No deadlock paths, infinite misclicks allowed
+// TODO: Double click should not count as misclick
 
 interface
 
@@ -25,7 +31,8 @@ type
     FinishTime: TDateTime;
     StepsStart: integer;
     StepsRemaining: integer;
-    MisClicks: integer;
+    MisClicksCur: integer;
+    MisClicksMax: integer;
   end;
   PGameStat = ^TGameStat;
 
@@ -60,10 +67,12 @@ type
     Timer1: TTimer;
     Timer2: TTimer;
     Label1: TLabel;
-    Label2: TLabel;
+    TabSheet3: TTabSheet;
+    Memo2: TMemo;
     procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     Fdeck: TDeck;
     Fgrid: TGrid;
@@ -75,6 +84,7 @@ type
     procedure CardButtonDraw(ACard: PCard);
     procedure DrawGridToScreen_BA_Interactive(AGrid: PGrid; AParent: TWinControl);
     procedure RegisterMisclick;
+    procedure Reshuffle;
   end;
 
 var
@@ -202,9 +212,16 @@ end;
 
 procedure TForm1.RegisterMisclick;
 begin
-  Inc(stat.MisClicks);
-  DrawGameStat;
-  Beep;
+  Inc(stat.MisClicksCur);
+  if (stat.MisClicksMax <> -1) and (stat.MisClicksCur > stat.MisClicksMax) then
+  begin
+    Reshuffle;
+  end
+  else
+  begin
+    DrawGameStat;
+    Beep;
+  end;
 end;
 
 function CardName(ACard: TCard): string;
@@ -280,6 +297,11 @@ begin
   AMemo.Lines.Add('\'+StrRepeat('♣', linelength-2)+'/');
 end;
 
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  PageControl1.ActivePageIndex := 0;
+end;
+
 procedure TForm1.CardButtonDraw(ACard: PCard);
 const
   GuiVertSpaceReserved = 350; // incl. Taskbar etc.
@@ -317,9 +339,11 @@ end;
 procedure TForm1.DrawGameStat;
 var
   Timer: string;
+  sMisClicksMax: string;
 resourcestring
   S_TITLE = 'Grid Game';
-  S_STATS = '%d of %d steps remaining - Time: %s (%d misclicks)';
+  S_STATS = '%d of %d steps remaining - Time: %s (%d of %s misclicks)';
+  S_Infinite = 'infinite';
 begin
   Caption := S_TITLE;
 
@@ -329,7 +353,13 @@ begin
     Timer := TimeToStr(stat.FinishTime - stat.StartTime)
   else
     Timer := TimeToStr(Now - stat.StartTime);
-  Caption := Caption + Format(' - '+S_STATS, [stat.StepsRemaining, stat.StepsStart, Timer, stat.MisClicks]);
+
+  if stat.MisClicksMax = -1 then
+    sMisClicksMax := S_Infinite
+  else
+    sMisClicksMax := IntToStr(stat.MisClicksMax);
+
+  Caption := Caption + Format(' - '+S_STATS, [stat.StepsRemaining, stat.StepsStart, Timer, stat.MisClicksCur, sMisClicksMax]);
 end;
 
 procedure TForm1.DrawGridToScreen_BA_Interactive(AGrid: PGrid; AParent: TWinControl);
@@ -371,25 +401,33 @@ begin
   end;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
+procedure TForm1.Reshuffle;
 resourcestring
   S_PLEASEWAIT = 'Please wait...';
 begin
+  Caption := S_PLEASEWAIT;
+  Timer2.Enabled := false;
+  stat.Initialized := false;
+  stat.GridSize := SpinEdit1.Value;
+  Randomize;
+  InitDeck(Fdeck);
+  LaycardsToGrid_BA(@stat, @Fdeck, @Fgrid); // Note: deck is not used at all...
+  DrawGridToScreen_BA_Interactive(@Fgrid, Scrollbox1);
+  DrawGridToScreen_BA_Print(@Fgrid, Memo1);
+  stat.StartTime := Now;
+  stat.FinishTime := 0;
+  stat.MisClicksCur := 0;
+  stat.MisClicksMax := -1; // TODO: game mode
+  stat.Initialized := true;
+  DrawGameStat;
+  Timer2.Enabled := true;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
   Button1.Enabled := false;
   try
-    Caption := S_PLEASEWAIT;
-    stat.GridSize := SpinEdit1.Value;
-    Randomize;
-    InitDeck(Fdeck);
-    LaycardsToGrid_BA(@stat, @Fdeck, @Fgrid); // Note: deck is not used at all...
-    DrawGridToScreen_BA_Interactive(@Fgrid, Scrollbox1);
-    DrawGridToScreen_BA_Print(@Fgrid, Memo1);
-    stat.StartTime := Now;
-    stat.FinishTime := 0;
-    stat.MisClicks := 0;
-    stat.Initialized := true;
-    DrawGameStat;
-    Timer2.Enabled := true;
+    Reshuffle;
   finally
     Button1.Enabled := true;
   end;

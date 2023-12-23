@@ -9,10 +9,13 @@ object Form1: TForm1
   Font.Height = -19
   Font.Name = 'Segoe UI'
   Font.Style = []
+  OldCreateOrder = True
   WindowState = wsMaximized
+  OnCreate = FormCreate
   DesignSize = (
     624
     603)
+  PixelsPerInch = 96
   TextHeight = 25
   object Label1: TLabel
     Left = 19
@@ -21,14 +24,6 @@ object Form1: TForm1
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Size'
-  end
-  object Label2: TLabel
-    Left = 347
-    Top = 554
-    Width = 261
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Grid Game by Daniel Marschall'
   end
   object Button1: TButton
     Left = 186
@@ -70,10 +65,6 @@ object Form1: TForm1
         Color = 4227072
         ParentColor = False
         TabOrder = 0
-        ExplicitLeft = 123
-        ExplicitTop = 56
-        ExplicitWidth = 256
-        ExplicitHeight = 281
       end
       object Panel1: TPanel
         Left = 0
@@ -92,9 +83,6 @@ object Form1: TForm1
         ParentBackground = False
         ParentFont = False
         TabOrder = 1
-        ExplicitLeft = 56
-        ExplicitTop = 232
-        ExplicitWidth = 185
       end
       object Panel2: TPanel
         Left = 0
@@ -113,7 +101,6 @@ object Form1: TForm1
         ParentBackground = False
         ParentFont = False
         TabOrder = 2
-        ExplicitTop = 8
       end
       object Panel3: TPanel
         Left = 0
@@ -132,8 +119,6 @@ object Form1: TForm1
         ParentBackground = False
         ParentFont = False
         TabOrder = 3
-        ExplicitTop = 407
-        ExplicitHeight = 600
       end
       object Panel4: TPanel
         Left = 559
@@ -152,9 +137,6 @@ object Form1: TForm1
         ParentBackground = False
         ParentFont = False
         TabOrder = 4
-        ExplicitLeft = 565
-        ExplicitTop = 35
-        ExplicitHeight = 407
       end
     end
     object TabSheet2: TTabSheet
@@ -174,8 +156,35 @@ object Form1: TForm1
         ParentFont = False
         ReadOnly = True
         TabOrder = 0
-        ExplicitLeft = 3
-        ExplicitHeight = 489
+      end
+    end
+    object TabSheet3: TTabSheet
+      Caption = 'Help'
+      ImageIndex = 2
+      object Memo2: TMemo
+        Left = 0
+        Top = 0
+        Width = 600
+        Height = 492
+        Align = alClient
+        Lines.Strings = (
+          'Known by the game "Brown Away", Grid Game is a game where you '
+          'need to navigate through a grid of playing cards. The card suit '
+          
+            'defines the direction and the value of the card defines the dist' +
+            'ance.'
+          ''
+          
+            'Please be aware that there might be traps. This means paths whic' +
+            'h '
+          'lead to a deadlock.'
+          ''
+          'Download latest version here:  '
+          'https://www.viathinksoft.com/projects/gridgame'
+          ''
+          'Source code:  https://github.com/danielmarschall/gridgame')
+        ReadOnly = True
+        TabOrder = 0
       end
     end
   end
