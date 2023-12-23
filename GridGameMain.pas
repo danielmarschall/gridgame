@@ -2,6 +2,7 @@
 
 // TODO: Top scores (also count misclicks)
 // TODO: Remember grid size for next session
+// TODO: Music and Sound Effects
 
 interface
 
@@ -442,7 +443,7 @@ begin
 
   if (oldy >= 0) and (oldy < stat.GridSize) and (oldx >= 0) and (oldx < stat.GridSize) then
   begin
-    if not Fgrid[oldx, oldy].isJoker and not Fgrid[oldx, oldy].isFaceDown then
+    if not Fgrid[oldx, oldy].isJoker or Fgrid[oldx, oldy].isFaceDown then
       RegisterMisclick
     else
     begin
@@ -451,22 +452,25 @@ begin
 
       Dec(stat.StepsRemaining);
 
-      if stat.StepsRemaining = 0 then
-      begin
-        Fgrid[x, y].isFaceDown := true;
-        CardButtonDraw(@Fgrid[x, y]);
-      end
-      else
-      begin
-        Fgrid[x, y].isJoker := true;
-        CardButtonDraw(@Fgrid[x, y]);
-      end;
+      Fgrid[x, y].isJoker := true;
+      CardButtonDraw(@Fgrid[x, y]);
 
       DrawGameStat;
 
       if stat.StepsRemaining = 0 then
       begin
         stat.FinishTime := Now;
+
+        // Hide all cards
+        for y := 0 to stat.GridSize-1 do
+        begin
+          for x := 0 to stat.GridSize-1 do
+          begin
+            Fgrid[x, y].isFaceDown := true;
+            CardButtonDraw(@Fgrid[x, y]);
+          end;
+        end;
+
         showmessage(S_WIN);
       end;
     end;
