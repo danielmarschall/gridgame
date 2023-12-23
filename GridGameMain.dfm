@@ -25,6 +25,14 @@ object Form1: TForm1
     Anchors = [akLeft, akBottom]
     Caption = 'Size'
   end
+  object Label2: TLabel
+    Left = 339
+    Top = 554
+    Width = 54
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Music:'
+  end
   object Button1: TButton
     Left = 186
     Top = 554
@@ -195,17 +203,18 @@ object Form1: TForm1
     end
   end
   object MediaPlayer1: TMediaPlayer
-    Left = 344
+    Left = 408
     Top = 554
     Width = 57
     Height = 30
     VisibleButtons = [btPlay, btStop]
     Anchors = [akLeft, akBottom]
+    AutoEnable = False
     DoubleBuffered = True
     FileName = 'D:\SVN\Grid Game\trunk\music.wav'
-    Visible = False
     ParentDoubleBuffered = False
     TabOrder = 3
+    OnClick = MediaPlayer1Click
     OnNotify = MediaPlayer1Notify
   end
   object Timer1: TTimer

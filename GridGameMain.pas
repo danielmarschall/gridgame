@@ -7,7 +7,7 @@
 //       - Disable Music
 // TODO: Game Modes
 //       - Nightmare = 1 misclick leads to reshuffle
-//       - Hard = 10% misclicks leads reshuffle
+//       - Hard = 20% (?) misclicks leads reshuffle
 //       - Medium = Deadlock paths possible, infinite misclicks allowed
 //       - Easy = No deadlock paths, infinite misclicks allowed
 // TODO: Double click should not count as misclick
@@ -73,11 +73,14 @@ type
     TabSheet3: TTabSheet;
     Memo2: TMemo;
     MediaPlayer1: TMediaPlayer;
+    Label2: TLabel;
     procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure MediaPlayer1Notify(Sender: TObject);
+    procedure MediaPlayer1Click(Sender: TObject; Button: TMPBtnType;
+      var DoDefault: Boolean);
   private
     Fdeck: TDeck;
     Fgrid: TGrid;
@@ -219,6 +222,15 @@ begin
 
   AStats.StepsStart := pathLength;
   AStats.StepsRemaining := pathLength;
+end;
+
+procedure TForm1.MediaPlayer1Click(Sender: TObject; Button: TMPBtnType;
+  var DoDefault: Boolean);
+begin
+  Case Button of
+    btStop:   MediaPlayer1.EnabledButtons := [btPlay];
+    btPlay:   MediaPlayer1.EnabledButtons := [btPause,btStop];
+  end;
 end;
 
 procedure TForm1.MediaPlayer1Notify(Sender: TObject);
@@ -443,7 +455,10 @@ begin
 
   PlaySound(nil, 0, 0);
   if MediaPlayer1.Mode = TMPModes.mpPlaying then
+  begin
     MediaPlayer1.Stop;
+  end;
+  MediaPlayer1.EnabledButtons := []; // We need to do this crap because AutoEnable does not work together with the Play/Stop commands
 
   PlaySound('sounds\shuffle.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_NOSTOP or SND_LOOP or SND_ASYNC);
   stat.Initialized := false;
@@ -467,6 +482,7 @@ begin
   begin
     MediaPlayer1.Open;
     MediaPlayer1.Play;
+    MediaPlayer1.EnabledButtons := [btStop]; // We need to do this crap because AutoEnable does not work together with the Play/Stop commands
     MediaPlayer1.Notify := True;
   end;
 
