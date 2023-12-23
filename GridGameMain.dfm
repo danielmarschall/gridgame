@@ -59,7 +59,7 @@ object Form1: TForm1
     Top = 8
     Width = 608
     Height = 532
-    ActivePage = TabSheet3
+    ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     object TabSheet1: TTabSheet
@@ -163,6 +163,7 @@ object Form1: TForm1
         Font.Style = []
         ParentFont = False
         ReadOnly = True
+        ScrollBars = ssBoth
         TabOrder = 0
       end
     end

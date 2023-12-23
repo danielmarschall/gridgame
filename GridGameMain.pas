@@ -344,7 +344,7 @@ end;
 
 procedure TForm1.CardButtonDraw(ACard: PCard);
 const
-  GuiVertSpaceReserved = 350; // incl. Taskbar etc.
+  GuiVertSpaceReserved = 325; // incl. Taskbar etc.
 var
   bitbtn: TBitBtn;
 resourcestring
@@ -361,8 +361,9 @@ begin
 
   bitbtn.Width := 60;
 
-  if ((Screen.Height - GuiVertSpaceReserved) div stat.GridSize) < 90 then
-    bitbtn.Height := (Screen.Height - GuiVertSpaceReserved) div stat.GridSize
+  // Monitor is the screen where the for is CURRENTLY at!
+  if ((Monitor.Height - GuiVertSpaceReserved) div stat.GridSize) < 90 then
+    bitbtn.Height := (Monitor.Height - GuiVertSpaceReserved) div stat.GridSize
   else
     bitbtn.Height := 90;
 
