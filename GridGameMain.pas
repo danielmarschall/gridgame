@@ -1,6 +1,6 @@
 ﻿unit GridGameMain;
 
-// TODO: Top scores (also count misclicks and time)
+// TODO: Top scores
 // TODO: Remember grid size and settings for next session
 // TODO: Settings
 //       - Disable Sounds
@@ -382,13 +382,13 @@ end;
 
 function TForm1.GetScore: integer;
 var
-  sec: Int64;
+  ms: Int64;
   clc: double;
 begin
   if (stat.StepsRemaining = 0) and (CompareValue(stat.FinishTime,0) <> 0) then
-    sec := SecondsBetween(stat.FinishTime, stat.StartTime)
+    ms := MilliSecondsBetween(stat.FinishTime, stat.StartTime)
   else
-    sec := SecondsBetween(Now, stat.StartTime);
+    ms := MilliSecondsBetween(Now, stat.StartTime);
 
   clc := stat.StepsStart-stat.StepsRemaining; // Successful clicks
   clc := clc - stat.MisClicksCur * 0.5; // Penality  0,5clicks per misclick
@@ -397,7 +397,7 @@ begin
 
   if clc = 0 then exit(0);
 
-  result := (60*100) - round(sec/clc*100);
+  result := (60*1000) - round(ms/clc);
   if result < 0 then result := 0;
 end;
 
