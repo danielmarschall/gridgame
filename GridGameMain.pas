@@ -472,15 +472,18 @@ end;
 procedure TForm1.Reshuffle;
 resourcestring
   S_PLEASEWAIT = 'Please wait...';
+var
+  shouldStartMusic: boolean;
 begin
   Caption := S_PLEASEWAIT;
   Timer2.Enabled := false;
+
+  shouldStartMusic := (MediaPlayer1.Tag = 0) or (MediaPlayer1.Mode = TMPModes.mpPlaying); // <-- if the user stopped the music, don't start it again at reshuffle
 
   PlaySound(nil, 0, 0);
   if MediaPlayer1.Mode = TMPModes.mpPlaying then
   begin
     MediaPlayer1.Stop;
-    MediaPlayer1.EnabledButtons := [btPlay];
   end;
   MediaPlayer1.EnabledButtons := []; // We need to do this crap because AutoEnable does not work together with the Play/Stop commands
 
@@ -505,10 +508,18 @@ begin
   if FileExists(MediaPlayer1.FileName) then
   begin
     MediaPlayer1.Open;
-    MediaPlayer1.Play;
-    MediaPlayer1.EnabledButtons := [btStop]; // We need to do this crap because AutoEnable does not work together with the Play/Stop commands
-    MediaPlayer1.Notify := True;
-    MediaPlayer1.AutoRewind := False; // Otherwise Loop does not work
+    if shouldStartMusic then
+    begin
+      MediaPlayer1.Play;
+      MediaPlayer1.EnabledButtons := [btStop]; // We need to do this crap because AutoEnable does not work together with the Play/Stop commands
+      MediaPlayer1.Notify := True;
+      MediaPlayer1.AutoRewind := False; // Otherwise Loop does not work
+      MediaPlayer1.Tag := 1; // ran once
+    end
+    else
+    begin
+      MediaPlayer1.EnabledButtons := [btPlay];
+    end;
   end;
 
   Timer2.Enabled := true;
