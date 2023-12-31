@@ -9,7 +9,9 @@
 //       - Nightmare = 1 misclick leads to reshuffle
 //       - Hard = 20% (?) misclicks leads reshuffle
 //       - Medium = Deadlock paths possible, infinite misclicks allowed
-//       - Easy = No deadlock paths, infinite misclicks allowed
+//       - Easy = No deadlock paths, infinite misclicks allowed  <== current default
+//       When deadlocks are implemented, add a warning to the help file
+//       "Please be aware that there might be traps. This means paths which lead to a deadlock."
 // TODO: Double click should not count as misclick
 // TODO: Make an icon
 // TODO: Center the cards to the screen center
@@ -619,6 +621,7 @@ begin
         begin
           MediaPlayer1.Stop;
           MediaPlayer1.EnabledButtons := [btPlay];
+          MediaPlayer1.Tag := 0; // Allow that the music starts again after reshuffling
         end;
       end
       else

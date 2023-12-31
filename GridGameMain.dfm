@@ -59,7 +59,7 @@ object Form1: TForm1
     Top = 8
     Width = 608
     Height = 532
-    ActivePage = TabSheet1
+    ActivePage = TabSheet3
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     object TabSheet1: TTabSheet
@@ -186,10 +186,11 @@ object Form1: TForm1
           ''
           'The values of the cards are A=1, J=11, Q=12, K=13'
           ''
-          
-            'Please be aware that there might be traps. This means paths whic' +
-            'h '
-          'lead to a deadlock.'
+          'Directions:'
+          '- Hearts = Left'
+          '- Diamonds = Right'
+          '- Clubs = Up'
+          '- Spades = Down'
           ''
           'Download latest version here:  '
           'https://www.viathinksoft.com/projects/gridgame'
