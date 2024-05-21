@@ -9,13 +9,12 @@ object Form1: TForm1
   Font.Height = -19
   Font.Name = 'Segoe UI'
   Font.Style = []
-  OldCreateOrder = True
   WindowState = wsMaximized
   OnCreate = FormCreate
+  OnShow = FormShow
   DesignSize = (
     624
     603)
-  PixelsPerInch = 96
   TextHeight = 25
   object Label1: TLabel
     Left = 19
@@ -59,7 +58,7 @@ object Form1: TForm1
     Top = 8
     Width = 608
     Height = 532
-    ActivePage = TabSheet3
+    ActivePage = TabSheet1
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
     object TabSheet1: TTabSheet
@@ -200,6 +199,28 @@ object Form1: TForm1
           'Developed in 2023 by Daniel Marschall, ViaThinkSoft'
           'Licensed under the terms of the Apache 2.0 License')
         ReadOnly = True
+        ScrollBars = ssVertical
+        TabOrder = 0
+      end
+    end
+    object TabSheet4: TTabSheet
+      Caption = 'Highscores'
+      ImageIndex = 3
+      object Memo3: TMemo
+        Left = 0
+        Top = 0
+        Width = 600
+        Height = 492
+        Align = alClient
+        Font.Charset = ANSI_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -24
+        Font.Name = 'Courier New'
+        Font.Style = []
+        ParentFont = False
+        PopupMenu = PopupMenu1
+        ReadOnly = True
+        ScrollBars = ssVertical
         TabOrder = 0
       end
     end
@@ -232,5 +253,13 @@ object Form1: TForm1
     OnTimer = Timer2Timer
     Left = 544
     Top = 560
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 532
+    Top = 76
+    object Deleteallentries1: TMenuItem
+      Caption = 'Delete all entries'
+      OnClick = Deleteallentries1Click
+    end
   end
 end

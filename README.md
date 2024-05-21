@@ -5,4 +5,4 @@ Known by the game "Brown Away", Grid Game is a game where you need to navigate t
 
 Download for Windows: https://www.viathinksoft.de/projects/gridgame
 
-[![VNag](https://raw.githubusercontent.com/danielmarschall/gridgame/master/Screenshot.png "Grid Game")](https://www.viathinksoft.com/projects/gridgame "Grid Game")
+[![GridGame screenshot](Screenshot.png "Grid Game")](https://www.viathinksoft.com/projects/gridgame "Grid Game")

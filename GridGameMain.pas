@@ -1,6 +1,5 @@
 ﻿unit GridGameMain;
 
-// TODO: Top scores
 // TODO: Remember grid size and settings for next session
 // TODO: Settings
 //       - Disable Sounds
@@ -21,7 +20,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Samples.Spin,
-  Vcl.ComCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.MPlayer;
+  Vcl.ComCtrls, Vcl.Buttons, Vcl.ExtCtrls, Vcl.MPlayer, Vcl.Menus;
 
 const
   MinGridSize = 2;
@@ -78,6 +77,10 @@ type
     Memo2: TMemo;
     MediaPlayer1: TMediaPlayer;
     Label2: TLabel;
+    TabSheet4: TTabSheet;
+    Memo3: TMemo;
+    PopupMenu1: TPopupMenu;
+    Deleteallentries1: TMenuItem;
     procedure Button1Click(Sender: TObject);
     procedure Timer1Timer(Sender: TObject);
     procedure Timer2Timer(Sender: TObject);
@@ -85,6 +88,8 @@ type
     procedure MediaPlayer1Notify(Sender: TObject);
     procedure MediaPlayer1Click(Sender: TObject; Button: TMPBtnType;
       var DoDefault: Boolean);
+    procedure FormShow(Sender: TObject);
+    procedure Deleteallentries1Click(Sender: TObject);
   private
     Fdeck: TDeck;
     Fgrid: TGrid;
@@ -98,6 +103,9 @@ type
     procedure RegisterMisclick;
     procedure Reshuffle;
     function GetScore: integer;
+    procedure AddToHighScores(const APlayerName: string; AGridSize: integer; AScore: integer);
+    function HighScoreFile(MayCreateDir: boolean): string;
+    procedure ClearHighScoreList;
   end;
 
 var
@@ -108,7 +116,7 @@ implementation
 {$R *.dfm}
 
 uses
-  Winapi.MMSystem, DateUtils, Math;
+  Winapi.MMSystem, DateUtils, Math, ActiveX, ShlObj;
 
 procedure InitDeck(var ADeck: TDeck);
 var
@@ -345,6 +353,18 @@ begin
   PageControl1.ActivePageIndex := 0;
 end;
 
+procedure TForm1.FormShow(Sender: TObject);
+var
+  FileName: string;
+begin
+  // Load highscores
+  FileName := HighScoreFile(False);
+  if FileExists(FileName) then
+    Memo3.Lines.LoadFromFile(FileName)
+  else
+    Memo3.Clear;
+end;
+
 procedure TForm1.CardButtonDraw(ACard: PCard);
 const
   GuiVertSpaceReserved = 325; // incl. Taskbar etc.
@@ -401,6 +421,11 @@ begin
 
   result := (60*1000) - round(ms/clc);
   if result < 0 then result := 0;
+end;
+
+procedure TForm1.Deleteallentries1Click(Sender: TObject);
+begin
+  ClearHighScoreList;
 end;
 
 procedure TForm1.DrawGameStat;
@@ -527,6 +552,64 @@ begin
   Timer2.Enabled := true;
 end;
 
+function TForm1.HighScoreFile(MayCreateDir: boolean): string;
+
+  const
+    FOLDERID_SavedGames: TGuid = '{4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4}'; // do not localize
+
+  function GetKnownFolderPath(const rfid: TGUID): string;
+  var
+    OutPath: PWideChar;
+  begin
+    // https://www.delphipraxis.net/135471-unit-zur-verwendung-von-shgetknownfolderpath.html
+    if ShGetKnownFolderPath(rfid, 0, 0, OutPath) {>= 0} = S_OK then
+    begin
+      Result := OutPath;
+      // From MSDN
+      // ppszPath [out]
+      // Type: PWSTR*
+      // When this method returns, contains the address of a pointer to a null-terminated Unicode string that specifies the path of the known folder
+      // The calling process is responsible for freeing this resource once it is no longer needed by calling CoTaskMemFree.
+      // The returned path does not include a trailing backslash. For example, "C:\Users" is returned rather than "C:\Users\".
+      CoTaskMemFree(OutPath);
+    end
+    else
+    begin
+      Result := '';
+    end;
+  end;
+
+var
+  HighScoreDir: string;
+begin
+  HighScoreDir := IncludeTrailingPathDelimiter(GetKnownFolderPath(FOLDERID_SavedGames)) + 'GridGame';
+  result := IncludeTrailingPathDelimiter(HighScoreDir) + 'HighScores.txt';
+  if MayCreateDir then ForceDirectories(HighScoreDir);
+end;
+
+function CompareDescending(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  Result := CompareText(List.Strings[Index2], List.Strings[Index1]);
+end;
+
+procedure TForm1.AddToHighScores(const APlayerName: string; AGridSize: integer; AScore: integer);
+var
+  sl: TStringList;
+  FileName: string;
+begin
+  sl := TStringList.Create;
+  try
+    FileName := HighScoreFile(True);
+    if FileExists(FileName) then sl.LoadFromFile(FileName);
+    sl.Add(Format('Grid %.*d   Score %.*d   %s', [2, AGridSize, Length('60000'), AScore, APlayerName]));
+    sl.CustomSort(CompareDescending);
+    sl.SaveToFile(FileName);
+    Memo3.Lines.Text := sl.Text; // reload GUI
+  finally
+    FreeAndNil(sl);
+  end;
+end;
+
 procedure TForm1.Button1Click(Sender: TObject);
 begin
   Button1.Enabled := false;
@@ -538,9 +621,13 @@ begin
 end;
 
 procedure TForm1.CardClick(Sender: TObject);
+resourcestring
+  SWinCaption = 'Win!';
+  SEnterName = 'Enter your name:';
 var
   x, y: integer;
   oldx, oldy: integer;
+  playerName: string;
 begin
   if not stat.Initialized then exit;
   if stat.StepsRemaining = 0 then exit;
@@ -616,6 +703,7 @@ begin
           end;
         end;
 
+        // Play sound
         PlaySound('sounds\win.wav', 0, SND_FILENAME or SND_NODEFAULT or SND_ASYNC);
         if MediaPlayer1.Mode = TMPModes.mpPlaying then
         begin
@@ -623,6 +711,12 @@ begin
           MediaPlayer1.EnabledButtons := [btPlay];
           MediaPlayer1.Tag := 0; // Allow that the music starts again after reshuffling
         end;
+
+        // Ask for name for the high scores
+        playerName := '';
+        InputQuery(SWinCaption, SEnterName, playerName);
+        if playerName <> '' then
+          AddToHighScores(playerName, stat.GridSize, GetScore);
       end
       else
       begin
@@ -635,6 +729,15 @@ begin
     RegisterMisclick;
     Exit;
   end;
+end;
+
+procedure TForm1.ClearHighScoreList;
+var
+  FileName: string;
+begin
+  FileName := HighScoreFile(false);
+  if FileExists(FileName) then DeleteFile(FileName);
+  Memo3.Clear;
 end;
 
 procedure TForm1.Timer1Timer(Sender: TObject);
