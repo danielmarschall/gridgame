@@ -58,10 +58,10 @@ object Form1: TForm1
     Top = 8
     Width = 608
     Height = 532
-    ActivePage = TabSheet1
+    ActivePage = tsPlay
     Anchors = [akLeft, akTop, akRight, akBottom]
     TabOrder = 2
-    object TabSheet1: TTabSheet
+    object tsPlay: TTabSheet
       Caption = 'Play'
       object ScrollBox1: TScrollBox
         Left = 41
@@ -146,7 +146,7 @@ object Form1: TForm1
         TabOrder = 4
       end
     end
-    object TabSheet2: TTabSheet
+    object tsText: TTabSheet
       Caption = 'Text'
       ImageIndex = 1
       object Memo1: TMemo
@@ -166,7 +166,7 @@ object Form1: TForm1
         TabOrder = 0
       end
     end
-    object TabSheet3: TTabSheet
+    object tsHelp: TTabSheet
       Caption = 'Help'
       ImageIndex = 2
       object Memo2: TMemo
@@ -203,7 +203,7 @@ object Form1: TForm1
         TabOrder = 0
       end
     end
-    object TabSheet4: TTabSheet
+    object tsHighscores: TTabSheet
       Caption = 'Highscores'
       ImageIndex = 3
       object Memo3: TMemo

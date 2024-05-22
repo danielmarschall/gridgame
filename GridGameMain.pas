@@ -12,7 +12,6 @@
 //       When deadlocks are implemented, add a warning to the help file
 //       "Please be aware that there might be traps. This means paths which lead to a deadlock."
 // TODO: Double click should not count as misclick
-// TODO: Make an icon
 // TODO: Center the cards to the screen center
 
 interface
@@ -63,8 +62,8 @@ type
     Button1: TButton;
     SpinEdit1: TSpinEdit;
     PageControl1: TPageControl;
-    TabSheet1: TTabSheet;
-    TabSheet2: TTabSheet;
+    tsPlay: TTabSheet;
+    tsText: TTabSheet;
     ScrollBox1: TScrollBox;
     Panel1: TPanel;
     Panel2: TPanel;
@@ -73,11 +72,11 @@ type
     Timer1: TTimer;
     Timer2: TTimer;
     Label1: TLabel;
-    TabSheet3: TTabSheet;
+    tsHelp: TTabSheet;
     Memo2: TMemo;
     MediaPlayer1: TMediaPlayer;
     Label2: TLabel;
-    TabSheet4: TTabSheet;
+    tsHighscores: TTabSheet;
     Memo3: TMemo;
     PopupMenu1: TPopupMenu;
     Deleteallentries1: TMenuItem;
@@ -605,6 +604,7 @@ begin
     sl.CustomSort(CompareDescending);
     sl.SaveToFile(FileName);
     Memo3.Lines.Text := sl.Text; // reload GUI
+    PageControl1.ActivePage := tsHighscores;
   finally
     FreeAndNil(sl);
   end;
@@ -614,6 +614,7 @@ procedure TForm1.Button1Click(Sender: TObject);
 begin
   Button1.Enabled := false;
   try
+    PageControl1.ActivePage := tsPlay;
     Reshuffle;
   finally
     Button1.Enabled := true;
